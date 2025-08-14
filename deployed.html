@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hall of Pretty Good - Search MLB Players Since 1990</title>
+    <meta name="description" content="Search any MLB player since 1990 to see if they're eligible for the Hall of Pretty Good. Features real career statistics and awards data.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e4d2b 0%, #2d5a3d 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2rem 0;
+            text-align: center;
+            border-bottom: 3px solid #ff6b35;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        /* Loading Section */
+        .loading-section {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            text-align: center;
+        }
+
+        .loading-status {
+            background: rgba(255, 107, 53, 0.1);
+            border: 2px solid #ff6b35;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(255, 107, 53, 0.3);
+            border-top: 4px solid #ff6b35;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Search Container */
+        .search-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            position: relative;
+        }
+
+        #playerSearch {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        #playerSearch:focus {
+            outline: none;
+            box-shadow: 0 4px 20px rgba(255, 107, 53, 0.4);
+            transform: translateY(-2px);
+        }
+
+        #playerSearch:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Search Suggestions */
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 0 0 10px 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .suggestion-item {
+            padding: 0.75rem 1rem;
+            color: #333;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            transition: background 0.2s ease;
+        }
+
+        .suggestion-item:hover {
+            background: rgba(255, 107, 53, 0.1);
+        }
+
+        /* Data Info */
+        .data-info {
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            padding: 1rem;
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        /* Stats Summary */
+        #statsSummary {
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            padding: 0 1rem;
+            text-align: center;
+            opacity: 0.8;
+            font-size: 1.1rem;
+        }
+
+        /* Players Grid */
+        #playersGrid {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 1rem 2rem;
+        }
+
+        /* Player Card */
+        .player-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 2rem;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            position: relative;
+            margin-bottom: 1rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .player-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(255, 107, 53, 0.3);
+        }
+
+        .player-card.eligible {
+            border-color: #4ade80;
+        }
+
+        .player-card.not-eligible {
+            border-color: #ef4444;
+            opacity: 0.9;
+        }
+
+        .eligibility-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 5px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .eligible-badge {
+            background: #4ade80;
+            color: #1e4d2b;
+        }
+
+        .not-eligible-badge {
+            background: #ef4444;
+            color: white;
+        }
+
+        .player-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ff6b35;
+            margin-bottom: 1rem;
+            margin-right: 120px;
+        }
+
+        .player-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .player-info div {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.5rem;
+            border-radius: 5px;
+        }
+
+        .teams-display {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.75rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0.75rem;
+            border-radius: 5px;
+            transition: transform 0.2s ease;
+        }
+
+        .stat:hover {
+            transform: scale(1.05);
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            display: block;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #ff6b35;
+        }
+
+        .eligibility-summary {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .criteria-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .criteria-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.5rem;
+            border-radius: 3px;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .criteria-pass {
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        .criteria-fail {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        /* Loading and Error States */
+        .loading {
+            text-align: center;
+            padding: 4rem 1rem;
+            opacity: 0.8;
+        }
+
+        .loading h3 {
+            color: #ff6b35;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 4rem 1rem;
+            color: #ef4444;
+            font-size: 1.1rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            opacity: 0.6;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 2rem;
+        }
+
+        .footer a {
+            color: #ff6b35;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .player-card {
+                padding: 1.5rem;
+            }
+            
+            .player-name {
+                font-size: 1.5rem;
+                margin-right: 100px;
+            }
+            
+            .player-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>⚾ Hall of Pretty Good</h1>
+        <p>Search Any MLB Player Since 1990</p>
+    </div>
+
+    <div class="loading-section" id="loadingSection">
+        <div class="loading-status">
+            <div class="loading-spinner"></div>
+            <h3>Loading MLB Player Database...</h3>
+            <p id="loadingText">Downloading player data and statistics...</p>
+        </div>
+    </div>
+
+    <div class="data-info" id="dataInfo" style="display: none;">
+        <strong>📊 Database Loaded:</strong> <span id="playerCount">0</span> players 
+        • <span id="eligibleCount">0</span> Hall of Pretty Good eligible
+        • <strong>Data includes real MVP, Cy Young, and Hall of Fame information</strong>
+    </div>
+
+    <div class="search-container" style="display: none;" id="searchContainer">
+        <input type="text" id="playerSearch" placeholder="Search for any MLB player (e.g., 'Derek Jeter', 'Hunter Pence', 'R.A. Dickey')...">
+        <div class="search-suggestions" id="searchSuggestions"></div>
+    </div>
+
+    <div id="statsSummary" style="display: none;">
+        Ready to search! Try Derek Jeter, Hunter Pence, or any MLB player since 1990
+    </div>
+
+    <div id="playersGrid">
+        <div class="loading">
+            <h3>🏗️ Initializing Hall of Pretty Good Database</h3>
+            <p>Loading comprehensive MLB player data with real awards information...</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Inspired by <a href="https://www.instagram.com/mlbhallofgood/" target="_blank">@mlbhallofgood</a> on Instagram</p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem;">
+            Data sourced from Baseball Reference via PyBaseball • Awards data verified • Career statistics accurate
+        </p>
+    </div>
+
+    <script>
+        // Global variables
+        let playersData = [];
+        let filteredPlayers = [];
+        let searchTimeout;
+
+        // DOM elements
+        const loadingSection = document.getElementById('loadingSection');
+        const searchContainer = document.getElementById('searchContainer');
+        const playerSearch = document.getElementById('playerSearch');
+        const searchSuggestions = document.getElementById('searchSuggestions');
+        const statsSummary = document.getElementById('statsSummary');
+        const playersGrid = document.getElementById('playersGrid');
+        const dataInfo = document.getElementById('dataInfo');
+        const playerCount = document.getElementById('playerCount');
+        const eligibleCount = document.getElementById('eligibleCount');
+        const loadingText = document.getElementById('loadingText');
+
+        // Auto-load data when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPlayerDatabase();
+        });
+
+        // Search functionality
+        playerSearch.addEventListener('input', handleSearchInput);
+        playerSearch.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('click', hideSuggestions);
+
+        async function loadPlayerDatabase() {
+            try {
+                loadingText.textContent = "Downloading MLB player database...";
+                
+                // In deployment, this CSV file will be hosted alongside the HTML
+                const response = await fetch('./all_players_1990_present.csv');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                loadingText.textContent = "Processing player data...";
+                const csvText = await response.text();
+                
+                loadingText.textContent = "Parsing career statistics...";
+                parseCSVData(csvText);
+                
+                // Hide loading section and show interface
+                loadingSection.style.display = 'none';
+                searchContainer.style.display = 'block';
+                statsSummary.style.display = 'block';
+                
+                initializeSearch();
+                showDataSummary();
+                
+            } catch (error) {
+                console.error('Error loading player database:', error);
+                loadingText.textContent = "Error loading database. Using sample data instead.";
+                
+                setTimeout(() => {
+                    loadSampleData();
+                    loadingSection.style.display = 'none';
+                    searchContainer.style.display = 'block';
+                    statsSummary.style.display = 'block';
+                }, 2000);
+            }
+        }
+
+        function parseCSVData(csvText) {
+            try {
+                const lines = csvText.split('\n');
+                const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+                
+                playersData = [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim()) {
+                        const values = parseCSVLine(lines[i]);
+                        const player = {};
+                        
+                        headers.forEach((header, index) => {
+                            player[header] = values[index] || '';
+                        });
+                        
+                        // Only add if it has essential data
+                        if (player.Name && player.career_war) {
+                            playersData.push(player);
+                        }
+                    }
+                }
+
+                console.log(`Loaded ${playersData.length} players from CSV`);
+                
+            } catch (error) {
+                console.error('Error parsing CSV:', error);
+                throw error;
+            }
+        }
+
+        function parseCSVLine(line) {
+            const values = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    values.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            values.push(current.trim());
+            return values;
+        }
+
+        function initializeSearch() {
+            playerSearch.disabled = false;
+            
+            statsSummary.textContent = `${playersData.length} players loaded. Start typing to search!`;
+            
+            playersGrid.innerHTML = `
+                <div class="loading">
+                    <h3>🔍 Ready to Search!</h3>
+                    <p>Try searching for Derek Jeter, Hunter Pence, R.A. Dickey, or any MLB player since 1990</p>
+                </div>
+            `;
+        }
+
+        function showDataSummary() {
+            const eligible = playersData.filter(p => p.hall_of_pretty_good_eligible === 'True' || p.hall_of_pretty_good_eligible === true);
+            
+            playerCount.textContent = playersData.length.toLocaleString();
+            eligibleCount.textContent = eligible.length.toLocaleString();
+            dataInfo.style.display = 'block';
+        }
+
+        function handleSearchInput(e) {
+            const query = e.target.value.trim();
+            
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+            
+            if (query.length >= 2) {
+                searchTimeout = setTimeout(() => {
+                    searchPlayers(query);
+                }, 300);
+                
+                showSuggestions(query);
+            } else {
+                hideSuggestions();
+                clearResults();
+            }
+        }
+
+        function handleKeyDown(e) {
+            if (e.key === 'Enter') {
+                const query = e.target.value.trim();
+                if (query.length >= 2) {
+                    hideSuggestions();
+                    searchPlayers(query);
+                }
+            }
+        }
+
+        function showSuggestions(query) {
+            const matches = playersData
+                .filter(player => player.Name.toLowerCase().includes(query.toLowerCase()))
+                .slice(0, 5);
+
+            if (matches.length > 0) {
+                searchSuggestions.innerHTML = matches
+                    .map(player => `
+                        <div class="suggestion-item" onclick="selectPlayer('${player.Name}')">
+                            ${player.Name} (${player.player_type}, ${player.debut_year}-${player.final_year})
+                        </div>
+                    `).join('');
+                searchSuggestions.style.display = 'block';
+            } else {
+                hideSuggestions();
+            }
+        }
+
+        function selectPlayer(playerName) {
+            playerSearch.value = playerName;
+            hideSuggestions();
+            searchPlayers(playerName);
+        }
+
+        function hideSuggestions(e) {
+            if (!e || !e.target.closest('.search-container')) {
+                searchSuggestions.style.display = 'none';
+            }
+        }
+
+        function searchPlayers(query) {
+            filteredPlayers = playersData.filter(player => 
+                player.Name.toLowerCase().includes(query.toLowerCase())
+            );
+
+            if (filteredPlayers.length > 0) {
+                renderPlayers(filteredPlayers.slice(0, 10)); // Limit to 10 results
+                statsSummary.textContent = `Found ${filteredPlayers.length} player(s) matching "${query}"`;
+            } else {
+                showNoResults(query);
+            }
+        }
+
+        function renderPlayers(players) {
+            playersGrid.innerHTML = players.map(player => {
+                const eligible = player.hall_of_pretty_good_eligible === 'True' || player.hall_of_pretty_good_eligible === true;
+                const isHitter = player.player_type === 'hitter';
+                
+                return `
+                    <div class="player-card ${eligible ? 'eligible' : 'not-eligible'}">
+                        <div class="eligibility-badge ${eligible ? 'eligible-badge' : 'not-eligible-badge'}">
+                            ${eligible ? '✓ ELIGIBLE' : '✗ NOT ELIGIBLE'}
+                        </div>
+                        <div class="player-name">${player.Name}</div>
+                        <div class="player-info">
+                            <div>Type: ${player.player_type.toUpperCase()}</div>
+                            <div>Career: ${player.debut_year}-${player.final_year}</div>
+                            <div>Seasons: ${player.seasons_played || 'N/A'}</div>
+                            <div>bWAR: ${parseFloat(player.career_war || 0).toFixed(1)}</div>
+                        </div>
+                        ${player.teams ? `<div class="teams-display">Teams: ${player.teams}</div>` : ''}
+                        <div class="stats-grid">
+                            ${renderPlayerStats(player, isHitter)}
+                        </div>
+                        <div class="eligibility-summary">
+                            ${getEligibilitySummary(player)}
+                        </div>
+                        <div class="criteria-details">
+                            ${renderEligibilityCriteria(player, isHitter)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderPlayerStats(player, isHitter) {
+            if (isHitter) {
+                // Fix the OBP/SLG calculations if they're showing as 0
+                let obp = parseFloat(player.obp || 0);
+                let slg = parseFloat(player.slg || 0);
+                let ops = parseFloat(player.ops || 0);
+                
+                // If advanced stats are 0, calculate them from the raw data
+                if (obp === 0 && player.hits && player.walks && player.plate_appearances) {
+                    const hits = parseInt(player.hits || 0);
+                    const walks = parseInt(player.walks || 0);
+                    const pa = parseInt(player.plate_appearances || 0);
+                    obp = pa > 0 ? ((hits + walks) / pa) : 0;
+                }
+                
+                if (slg === 0 && player.hits && player.at_bats) {
+                    const hits = parseInt(player.hits || 0);
+                    const doubles = parseInt(player.doubles || 0);
+                    const triples = parseInt(player.triples || 0);
+                    const hrs = parseInt(player.home_runs || 0);
+                    const ab = parseInt(player.at_bats || 0);
+                    
+                    const totalBases = hits + doubles + (triples * 2) + (hrs * 3);
+                    slg = ab > 0 ? (totalBases / ab) : 0;
+                }
+                
+                if (ops === 0) {
+                    ops = obp + slg;
+                }
+                
+                return `
+                    <div class="stat">
+                        <span class="stat-label">Games</span>
+                        <span class="stat-value">${parseInt(player.games || 0).toLocaleString()}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">AVG</span>
+                        <span class="stat-value">${parseFloat(player.batting_avg || 0).toFixed(3)}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Hits</span>
+                        <span class="stat-value">${parseInt(player.hits || 0).toLocaleString()}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">HR</span>
+                        <span class="stat-value">${parseInt(player.home_runs || 0).toLocaleString()}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">RBI</span>
+                        <span class="stat-value">${parseInt(player.rbis || 0).toLocaleString()}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Runs</span>
+                        <span class="stat-value">${parseInt(player.runs || 0).toLocaleString()}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">OBP</span>
+                        <span class="stat-value">${obp.toFixed(3)}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">SLG</span>
+                        <span class="stat-value">${slg.toFixed(3)}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">OPS</span>
+                        <span class="stat-value">${ops.toFixed(3)}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">SB</span>
+                        <span class="stat-value">${parseInt(player.stolen_bases || 0)}</span>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="stat">
+                        <span class="stat-label">Games</span>
+                        <span class="stat-value">${parseInt(player.games || 0).toLocaleString()}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Wins</span>
+                        <span class="stat-value">${parseInt(player.wins || 0)}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Losses</span>
+                        <span class="stat-value">${parseInt(player.losses || 0)}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Win %</span>
+                        <span class="stat-value">${parseFloat(player.win_pct || 0).toFixed(3)}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">ERA</span>
+                        <span class="stat-value">${parseFloat(player.era || 0).toFixed(2)}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">IP</span>
+                        <span class="stat-value">${parseFloat(player.innings_pitched || 0).toFixed(1)}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">SO</span>
+                        <span class="stat-value">${parseInt(player.strikeouts || 0).toLocaleString()}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">WHIP</span>
+                        <span class="stat-value">${parseFloat(player.whip || 0).toFixed(3)}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">K/9</span>
+                        <span class="stat-value">${parseFloat(player.k_per_nine || 0).toFixed(1)}</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Saves</span>
+                        <span class="stat-value">${parseInt(player.saves || 0)}</span>
+                    </div>
+                `;
+            }
+        }
+
+        function getEligibilitySummary(player) {
+            const eligible = player.hall_of_pretty_good_eligible === 'True' || player.hall_of_pretty_good_eligible === true;
+            
+            if (eligible) {
+                return '✅ Meets all Hall of Pretty Good criteria';
+            } else {
+                const issues = [];
+                const war = parseFloat(player.career_war || 0);
+                const mvpCount = parseInt(player.mvp_awards || 0);
+                const cyCount = parseInt(player.cy_young_awards || 0);
+                const isHOF = player.hall_of_famer === 'True' || player.hall_of_famer === true;
+                
+                if (war > 38.6) issues.push(`bWAR too high (${war.toFixed(1)} > 38.6)`);
+                if (mvpCount > 0) issues.push(`Won ${mvpCount} MVP award${mvpCount > 1 ? 's' : ''}`);
+                if (cyCount > 0) issues.push(`Won ${cyCount} Cy Young award${cyCount > 1 ? 's' : ''}`);
+                if (isHOF) issues.push('Hall of Famer');
+                
+                if (player.player_type === 'hitter') {
+                    const avg = parseFloat(player.batting_avg || 0);
+                    const hits = parseInt(player.hits || 0);
+                    if (avg < 0.200) issues.push(`Batting average too low (${avg.toFixed(3)} < .200)`);
+                    if (hits < 1000) issues.push(`Not enough hits (${hits} < 1000)`);
+                }
+                
+                return `❌ ${issues.length > 0 ? issues.join(', ') : 'Does not meet criteria'}`;
+            }
+        }
+
+        function renderEligibilityCriteria(player, isHitter) {
+            const war = parseFloat(player.career_war || 0);
+            const mvpCount = parseInt(player.mvp_awards || 0);
+            const cyCount = parseInt(player.cy_young_awards || 0);
+            const isHOF = player.hall_of_famer === 'True' || player.hall_of_famer === true;
+            
+            const warOk = war <= 38.6;
+            const mvpOk = mvpCount === 0;
+            const cyOk = cyCount === 0;
+            const hofOk = !isHOF;
+            
+            let criteria = `
+                <div class="criteria-item">
+                    <span>bWAR ≤ 38.6:</span>
+                    <span class="${warOk ? 'criteria-pass' : 'criteria-fail'}">${warOk ? '✓' : `✗ (${war.toFixed(1)})`}</span>
+                </div>
+                <div class="criteria-item">
+                    <span>No MVP Awards:</span>
+                    <span class="${mvpOk ? 'criteria-pass' : 'criteria-fail'}">${mvpOk ? '✓' : `✗ (${mvpCount} MVP${mvpCount > 1 ? 's' : ''})`}</span>
+                </div>
+                <div class="criteria-item">
+                    <span>No Cy Young Awards:</span>
+                    <span class="${cyOk ? 'criteria-pass' : 'criteria-fail'}">${cyOk ? '✓' : `✗ (${cyCount} Cy Young${cyCount > 1 ? 's' : ''})`}</span>
+                </div>
+                <div class="criteria-item">
+                    <span>Not Hall of Famer:</span>
+                    <span class="${hofOk ? 'criteria-pass' : 'criteria-fail'}">${hofOk ? '✓' : '✗ (HOF Member)'}</span>
+                </div>
+            `;
+            
+            if (isHitter) {
+                const avg = parseFloat(player.batting_avg || 0);
+                const hits = parseInt(player.hits || 0);
+                const avgOk = avg >= 0.200;
+                const hitsOk = hits >= 1000;
+                
+                criteria += `
+                    <div class="criteria-item">
+                        <span>Avg ≥ .200:</span>
+                        <span class="${avgOk ? 'criteria-pass' : 'criteria-fail'}">${avgOk ? '✓' : `✗ (${avg.toFixed(3)})`}</span>
+                    </div>
+                    <div class="criteria-item">
+                        <span>Hits ≥ 1000:</span>
+                        <span class="${hitsOk ? 'criteria-pass' : 'criteria-fail'}">${hitsOk ? '✓' : `✗ (${hits})`}</span>
+                    </div>
+                `;
+            }
+            
+            return criteria;
+        }
+
+        function showNoResults(query) {
+            playersGrid.innerHTML = `
+                <div class="no-results">
+                    No players found matching "${query}". 
+                    <br>Try a different spelling or name.
+                </div>
+            `;
+            statsSummary.textContent = `No results found for "${query}"`;
+        }
+
+        function clearResults() {
+            playersGrid.innerHTML = `
+                <div class="loading">
+                    <h3>🔍 Start typing to search</h3>
+                    <p>Try searching for Derek Jeter, Hunter Pence, R.A. Dickey, or any MLB player since 1990</p>
+                </div>
+            `;
+            statsSummary.textContent = `${playersData.length.toLocaleString()} players loaded. Start typing to search!`;
+        }
+
+        function loadSampleData() {
+            // Fallback sample data with REAL career totals and awards
+            const sampleData = `Name,player_type,debut_year,final_year,seasons_played,games,career_war,at_bats,hits,doubles,triples,home_runs,runs,rbis,walks,strikeouts,stolen_bases,batting_avg,obp,slg,ops,games_started,wins,losses,saves,innings_pitched,hits_allowed,earned_runs,era,whip,k_per_nine,win_pct,teams,mvp_awards,cy_young_awards,hall_of_famer,hall_of_pretty_good_eligible
+Hunter Pence,hitter,2007,2020,14,1705,32.8,6358,1777,336,52,244,942,942,434,1437,107,0.279,0.332,0.440,0.772,,,,,,,,,,,,"HOU, PHI, SF, TEX",0,0,False,True
+Derek Jeter,hitter,1995,2014,20,2747,71.3,11195,3465,544,66,260,1923,1311,712,1840,358,0.310,0.377,0.440,0.817,,,,,,,,,,,,"NYY",0,0,True,False
+Bobby Abreu,hitter,1996,2014,18,2425,36.4,8480,2470,574,79,288,1453,1363,1476,1840,400,0.291,0.395,0.475,0.870,,,,,,,,,,,,"HOU, PHI, NYY, LAA, ARI, NYM",0,0,False,True
+R.A. Dickey,pitcher,2001,2017,17,377,18.5,,,,,,,,,,,,,,469,109,85,0,2097.1,2108,939,4.03,1.346,6.6,0.562,"TEX, SEA, MIN, NYM, TOR, ATL",0,1,False,False
+Pedro Martinez,pitcher,1992,2009,18,476,86.0,,,,,,,,,,,,,,409,219,100,3,2827.1,1968,918,2.93,1.054,10.0,0.687,"LAD, MON, BOS, NYM, PHI",0,3,True,False
+Tim Hudson,pitcher,1999,2015,17,525,38.4,,,,,,,,,,,,,,476,222,133,2,3126.0,3083,1213,3.49,1.239,6.0,0.625,"OAK, ATL, SF",0,0,False,True
+Carlos Beltran,hitter,1998,2017,20,2586,70.1,8677,2725,565,39,435,1582,1587,1084,1955,312,0.279,0.350,0.486,0.835,,,,,,,,,,,,"KC, HOU, NYY, SF, STL, TEX",0,0,False,False`;
+
+            parseCSVData(sampleData);
+        }
+    </script>
+</body>
+</html>
