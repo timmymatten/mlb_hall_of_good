@@ -1,5 +1,7 @@
 # ⚾ MLB Hall of Pretty Good
 
+> **⚠️ Work in Progress:** This project is actively being developed. Some statistics may be slightly off as we refine the data processing. The eligibility criteria and awards data are accurate.
+
 Search any MLB player since 1990 to see if they're eligible for the "Hall of Pretty Good"
 
 **🌐 [Live Website](https://timmymatten.github.io/mlb_hall_of_good/)**
