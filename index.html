@@ -1,10 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hall of Pretty Good - Search MLB Players Since 1990</title>
-    <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚾</text></svg>">
     <meta name="description" content="Search any MLB player since 1990 to see if they're eligible for the Hall of Pretty Good. Features real career statistics and awards data.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -452,7 +452,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>âš¾ Hall of Pretty Good</h1>
+        <h1>⚾ Hall of Pretty Good</h1>
         <p>Search Any MLB Player Since 1990</p>
     </div>
 
@@ -465,9 +465,9 @@
     </div>
 
     <div class="data-info" id="dataInfo" style="display: none;">
-        <strong>ðŸ“Š Database Loaded:</strong> <span id="playerCount">0</span> players 
-        â€¢ <span id="eligibleCount">0</span> Hall of Pretty Good eligible
-        â€¢ <strong>Data includes real MVP, Cy Young, and Hall of Fame information</strong>
+        <strong>📊 Database Loaded:</strong> <span id="playerCount">0</span> players 
+        • <span id="eligibleCount">0</span> Hall of Pretty Good eligible
+        • <strong>Data includes real MVP, Cy Young, and Hall of Fame information</strong>
     </div>
 
     <div class="search-container" style="display: none;" id="searchContainer">
@@ -481,7 +481,7 @@
 
     <div id="playersGrid">
         <div class="loading">
-            <h3>ðŸ—ï¸ Initializing Hall of Pretty Good Database</h3>
+            <h3>🏗️ Initializing Hall of Pretty Good Database</h3>
             <p>Loading comprehensive MLB player data with real awards information...</p>
         </div>
     </div>
@@ -489,7 +489,7 @@
     <div class="footer">
         <p>Inspired by <a href="https://www.instagram.com/mlbhallofgood/" target="_blank">@mlbhallofgood</a> on Instagram</p>
         <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-            Data sourced from Baseball Reference via PyBaseball â€¢ Awards data verified â€¢ Career statistics accurate
+            Data sourced from Baseball Reference via PyBaseball • Awards data verified • Career statistics accurate
         </p>
     </div>
 
@@ -616,7 +616,7 @@
             
             playersGrid.innerHTML = `
                 <div class="loading">
-                    <h3>ðŸ” Ready to Search!</h3>
+                    <h3>🔍 Ready to Search!</h3>
                     <p>Try searching for Derek Jeter, Hunter Pence, R.A. Dickey, or any MLB player since 1990</p>
                 </div>
             `;
@@ -669,7 +669,7 @@
                     .map(player => `
                         <div class="suggestion-item" onclick="selectPlayer('${player.Name}')">
                             <div class="suggestion-player-name">${player.Name}</div>
-                            <div class="suggestion-player-info">${player.player_type} â€¢ ${player.debut_year}-${player.final_year}</div>
+                            <div class="suggestion-player-info">${player.player_type} • ${player.debut_year}-${player.final_year}</div>
                         </div>
                     `).join('');
                 searchSuggestions.style.display = 'block';
@@ -711,7 +711,7 @@
                 return `
                     <div class="player-card ${eligible ? 'eligible' : 'not-eligible'}">
                         <div class="eligibility-badge ${eligible ? 'eligible-badge' : 'not-eligible-badge'}">
-                            ${eligible ? 'âœ“ ELIGIBLE' : 'âœ— NOT ELIGIBLE'}
+                            ${eligible ? '✓ ELIGIBLE' : '✗ NOT ELIGIBLE'}
                         </div>
                         <div class="player-name">${player.Name}</div>
                         <div class="player-info">
@@ -855,7 +855,7 @@
             const eligible = player.hall_of_pretty_good_eligible === 'True' || player.hall_of_pretty_good_eligible === true;
             
             if (eligible) {
-                return 'âœ… Meets all Hall of Pretty Good criteria';
+                return '✅ Meets all Hall of Pretty Good criteria';
             } else {
                 const issues = [];
                 const war = parseFloat(player.career_war || 0);
@@ -875,7 +875,7 @@
                     if (hits < 1000) issues.push(`Not enough hits (${hits} < 1000)`);
                 }
                 
-                return `âŒ ${issues.length > 0 ? issues.join(', ') : 'Does not meet criteria'}`;
+                return `❌ ${issues.length > 0 ? issues.join(', ') : 'Does not meet criteria'}`;
             }
         }
 
@@ -892,20 +892,20 @@
             
             let criteria = `
                 <div class="criteria-item">
-                    <span>bWAR â‰¤ 38.6:</span>
-                    <span class="${warOk ? 'criteria-pass' : 'criteria-fail'}">${warOk ? 'âœ“' : `âœ— (${war.toFixed(1)})`}</span>
+                    <span>bWAR ≤ 38.6:</span>
+                    <span class="${warOk ? 'criteria-pass' : 'criteria-fail'}">${warOk ? '✓' : `✗ (${war.toFixed(1)})`}</span>
                 </div>
                 <div class="criteria-item">
                     <span>No MVP Awards:</span>
-                    <span class="${mvpOk ? 'criteria-pass' : 'criteria-fail'}">${mvpOk ? 'âœ“' : `âœ— (${mvpCount} MVP${mvpCount > 1 ? 's' : ''})`}</span>
+                    <span class="${mvpOk ? 'criteria-pass' : 'criteria-fail'}">${mvpOk ? '✓' : `✗ (${mvpCount} MVP${mvpCount > 1 ? 's' : ''})`}</span>
                 </div>
                 <div class="criteria-item">
                     <span>No Cy Young Awards:</span>
-                    <span class="${cyOk ? 'criteria-pass' : 'criteria-fail'}">${cyOk ? 'âœ“' : `âœ— (${cyCount} Cy Young${cyCount > 1 ? 's' : ''})`}</span>
+                    <span class="${cyOk ? 'criteria-pass' : 'criteria-fail'}">${cyOk ? '✓' : `✗ (${cyCount} Cy Young${cyCount > 1 ? 's' : ''})`}</span>
                 </div>
                 <div class="criteria-item">
                     <span>Not Hall of Famer:</span>
-                    <span class="${hofOk ? 'criteria-pass' : 'criteria-fail'}">${hofOk ? 'âœ“' : 'âœ— (HOF Member)'}</span>
+                    <span class="${hofOk ? 'criteria-pass' : 'criteria-fail'}">${hofOk ? '✓' : '✗ (HOF Member)'}</span>
                 </div>
             `;
             
@@ -917,12 +917,12 @@
                 
                 criteria += `
                     <div class="criteria-item">
-                        <span>Avg â‰¥ .200:</span>
-                        <span class="${avgOk ? 'criteria-pass' : 'criteria-fail'}">${avgOk ? 'âœ“' : `âœ— (${avg.toFixed(3)})`}</span>
+                        <span>Avg ≥ .200:</span>
+                        <span class="${avgOk ? 'criteria-pass' : 'criteria-fail'}">${avgOk ? '✓' : `✗ (${avg.toFixed(3)})`}</span>
                     </div>
                     <div class="criteria-item">
-                        <span>Hits â‰¥ 1000:</span>
-                        <span class="${hitsOk ? 'criteria-pass' : 'criteria-fail'}">${hitsOk ? 'âœ“' : `âœ— (${hits})`}</span>
+                        <span>Hits ≥ 1000:</span>
+                        <span class="${hitsOk ? 'criteria-pass' : 'criteria-fail'}">${hitsOk ? '✓' : `✗ (${hits})`}</span>
                     </div>
                 `;
             }
@@ -943,7 +943,7 @@
         function clearResults() {
             playersGrid.innerHTML = `
                 <div class="loading">
-                    <h3>ðŸ” Start typing to search</h3>
+                    <h3>🔍 Start typing to search</h3>
                     <p>Try searching for Derek Jeter, Hunter Pence, R.A. Dickey, or any MLB player since 1990</p>
                 </div>
             `;
