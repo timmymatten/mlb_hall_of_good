@@ -7,6 +7,9 @@
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚾</text></svg>">
     <meta name="description" content="Search any MLB player since 1990 to see if they're eligible for the Hall of Pretty Good. Features real career statistics and awards data.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -15,10 +18,12 @@
         }
 
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
             background: linear-gradient(135deg, #1e4d2b 0%, #2d5a3d 100%);
             min-height: 100vh;
             color: #fff;
+            font-weight: 400;
+            letter-spacing: 0.01em;
         }
 
         /* Header */
@@ -31,14 +36,20 @@
         }
 
         .header h1 {
-            font-size: 3rem;
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            font-weight: 700;
             margin-bottom: 0.5rem;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            letter-spacing: -0.02em;
         }
 
         .header p {
+            font-family: 'Inter', sans-serif;
             font-size: 1.2rem;
+            font-weight: 400;
             opacity: 0.9;
+            letter-spacing: 0.05em;
         }
 
         /* Loading Section */
@@ -82,25 +93,35 @@
 
         #playerSearch {
             width: 100%;
-            padding: 1rem;
-            border: none;
-            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            border: 2px solid #ff6b35;
+            border-radius: 15px;
             font-size: 1.2rem;
-            background: rgba(255, 255, 255, 0.95);
-            color: #333;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            background: rgba(30, 77, 43, 0.8);
+            color: #fff;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
             transition: all 0.3s ease;
+            font-weight: 500;
         }
 
         #playerSearch:focus {
             outline: none;
-            box-shadow: 0 4px 20px rgba(255, 107, 53, 0.4);
-            transform: translateY(-2px);
+            border-color: #4ade80;
+            box-shadow: 0 8px 30px rgba(74, 222, 128, 0.4);
+            transform: translateY(-3px);
+            background: rgba(30, 77, 43, 0.9);
+        }
+
+        #playerSearch::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+            font-style: italic;
         }
 
         #playerSearch:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            background: rgba(30, 77, 43, 0.4);
         }
 
         /* Search Suggestions */
@@ -109,25 +130,55 @@
             top: 100%;
             left: 1rem;
             right: 1rem;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 0 0 10px 10px;
-            max-height: 200px;
+            background: rgba(30, 77, 43, 0.95);
+            border: 2px solid #ff6b35;
+            border-top: none;
+            border-radius: 0 0 15px 15px;
+            max-height: 250px;
             overflow-y: auto;
             display: none;
             z-index: 100;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
 
         .suggestion-item {
-            padding: 0.75rem 1rem;
-            color: #333;
+            padding: 1rem 1.5rem;
+            color: #fff;
             cursor: pointer;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            transition: background 0.2s ease;
+            border-bottom: 1px solid rgba(255, 107, 53, 0.3);
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .suggestion-item:hover {
-            background: rgba(255, 107, 53, 0.1);
+            background: rgba(255, 107, 53, 0.2);
+            color: #4ade80;
+            transform: translateX(5px);
+            border-bottom-color: #4ade80;
+        }
+
+        .suggestion-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 13px 13px;
+        }
+
+        .suggestion-player-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .suggestion-player-info {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .suggestion-item:hover .suggestion-player-info {
+            color: rgba(74, 222, 128, 0.8);
         }
 
         /* Data Info */
@@ -186,14 +237,17 @@
             opacity: 0.9;
         }
 
+        /* Eligibility Badge */
         .eligibility-badge {
             position: absolute;
             top: 1rem;
             right: 1rem;
-            padding: 0.3rem 0.6rem;
-            border-radius: 5px;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
             font-size: 0.75rem;
-            font-weight: bold;
+            font-weight: 600;
+            letter-spacing: 0.05em;
         }
 
         .eligible-badge {
@@ -206,6 +260,7 @@
             color: white;
         }
 
+        /* Player Info */
         .player-name {
             font-size: 1.8rem;
             font-weight: bold;
@@ -240,6 +295,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
+        /* Stats Grid */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
@@ -260,19 +316,25 @@
         }
 
         .stat-label {
+            font-family: 'JetBrains Mono', monospace;
             font-size: 0.7rem;
+            font-weight: 500;
             opacity: 0.7;
             display: block;
             margin-bottom: 0.25rem;
             text-transform: uppercase;
+            letter-spacing: 0.1em;
         }
 
         .stat-value {
-            font-weight: bold;
-            font-size: 1.1rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
             color: #ff6b35;
+            letter-spacing: -0.01em;
         }
 
+        /* Eligibility Summary */
         .eligibility-summary {
             font-size: 1.1rem;
             font-weight: bold;
@@ -283,6 +345,7 @@
             text-align: center;
         }
 
+        /* Criteria Details */
         .criteria-details {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -331,11 +394,14 @@
 
         /* Footer */
         .footer {
+            font-family: 'Inter', sans-serif;
             text-align: center;
             padding: 2rem;
             opacity: 0.6;
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             margin-top: 2rem;
+            font-weight: 400;
+            letter-spacing: 0.02em;
         }
 
         .footer a {
@@ -386,7 +452,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>⚾ Hall of Pretty Good</h1>
+        <h1>âš¾ Hall of Pretty Good</h1>
         <p>Search Any MLB Player Since 1990</p>
     </div>
 
@@ -399,9 +465,9 @@
     </div>
 
     <div class="data-info" id="dataInfo" style="display: none;">
-        <strong>📊 Database Loaded:</strong> <span id="playerCount">0</span> players 
-        • <span id="eligibleCount">0</span> Hall of Pretty Good eligible
-        • <strong>Data includes real MVP, Cy Young, and Hall of Fame information</strong>
+        <strong>ðŸ“Š Database Loaded:</strong> <span id="playerCount">0</span> players 
+        â€¢ <span id="eligibleCount">0</span> Hall of Pretty Good eligible
+        â€¢ <strong>Data includes real MVP, Cy Young, and Hall of Fame information</strong>
     </div>
 
     <div class="search-container" style="display: none;" id="searchContainer">
@@ -415,7 +481,7 @@
 
     <div id="playersGrid">
         <div class="loading">
-            <h3>🏗️ Initializing Hall of Pretty Good Database</h3>
+            <h3>ðŸ—ï¸ Initializing Hall of Pretty Good Database</h3>
             <p>Loading comprehensive MLB player data with real awards information...</p>
         </div>
     </div>
@@ -423,7 +489,7 @@
     <div class="footer">
         <p>Inspired by <a href="https://www.instagram.com/mlbhallofgood/" target="_blank">@mlbhallofgood</a> on Instagram</p>
         <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-            Data sourced from Baseball Reference via PyBaseball • Awards data verified • Career statistics accurate
+            Data sourced from Baseball Reference via PyBaseball â€¢ Awards data verified â€¢ Career statistics accurate
         </p>
     </div>
 
@@ -459,7 +525,6 @@
             try {
                 loadingText.textContent = "Downloading MLB player database...";
                 
-                // In deployment, this CSV file will be hosted alongside the HTML
                 const response = await fetch('./all_players_1990_present.csv');
                 
                 if (!response.ok) {
@@ -472,7 +537,6 @@
                 loadingText.textContent = "Parsing career statistics...";
                 parseCSVData(csvText);
                 
-                // Hide loading section and show interface
                 loadingSection.style.display = 'none';
                 searchContainer.style.display = 'block';
                 statsSummary.style.display = 'block';
@@ -509,7 +573,6 @@
                             player[header] = values[index] || '';
                         });
                         
-                        // Only add if it has essential data
                         if (player.Name && player.career_war) {
                             playersData.push(player);
                         }
@@ -553,7 +616,7 @@
             
             playersGrid.innerHTML = `
                 <div class="loading">
-                    <h3>🔍 Ready to Search!</h3>
+                    <h3>ðŸ” Ready to Search!</h3>
                     <p>Try searching for Derek Jeter, Hunter Pence, R.A. Dickey, or any MLB player since 1990</p>
                 </div>
             `;
@@ -605,7 +668,8 @@
                 searchSuggestions.innerHTML = matches
                     .map(player => `
                         <div class="suggestion-item" onclick="selectPlayer('${player.Name}')">
-                            ${player.Name} (${player.player_type}, ${player.debut_year}-${player.final_year})
+                            <div class="suggestion-player-name">${player.Name}</div>
+                            <div class="suggestion-player-info">${player.player_type} â€¢ ${player.debut_year}-${player.final_year}</div>
                         </div>
                     `).join('');
                 searchSuggestions.style.display = 'block';
@@ -632,7 +696,7 @@
             );
 
             if (filteredPlayers.length > 0) {
-                renderPlayers(filteredPlayers.slice(0, 10)); // Limit to 10 results
+                renderPlayers(filteredPlayers.slice(0, 10));
                 statsSummary.textContent = `Found ${filteredPlayers.length} player(s) matching "${query}"`;
             } else {
                 showNoResults(query);
@@ -647,7 +711,7 @@
                 return `
                     <div class="player-card ${eligible ? 'eligible' : 'not-eligible'}">
                         <div class="eligibility-badge ${eligible ? 'eligible-badge' : 'not-eligible-badge'}">
-                            ${eligible ? '✓ ELIGIBLE' : '✗ NOT ELIGIBLE'}
+                            ${eligible ? 'âœ“ ELIGIBLE' : 'âœ— NOT ELIGIBLE'}
                         </div>
                         <div class="player-name">${player.Name}</div>
                         <div class="player-info">
@@ -673,12 +737,10 @@
 
         function renderPlayerStats(player, isHitter) {
             if (isHitter) {
-                // Fix the OBP/SLG calculations if they're showing as 0
                 let obp = parseFloat(player.obp || 0);
                 let slg = parseFloat(player.slg || 0);
                 let ops = parseFloat(player.ops || 0);
                 
-                // If advanced stats are 0, calculate them from the raw data
                 if (obp === 0 && player.hits && player.walks && player.plate_appearances) {
                     const hits = parseInt(player.hits || 0);
                     const walks = parseInt(player.walks || 0);
@@ -793,7 +855,7 @@
             const eligible = player.hall_of_pretty_good_eligible === 'True' || player.hall_of_pretty_good_eligible === true;
             
             if (eligible) {
-                return '✅ Meets all Hall of Pretty Good criteria';
+                return 'âœ… Meets all Hall of Pretty Good criteria';
             } else {
                 const issues = [];
                 const war = parseFloat(player.career_war || 0);
@@ -813,7 +875,7 @@
                     if (hits < 1000) issues.push(`Not enough hits (${hits} < 1000)`);
                 }
                 
-                return `❌ ${issues.length > 0 ? issues.join(', ') : 'Does not meet criteria'}`;
+                return `âŒ ${issues.length > 0 ? issues.join(', ') : 'Does not meet criteria'}`;
             }
         }
 
@@ -830,20 +892,20 @@
             
             let criteria = `
                 <div class="criteria-item">
-                    <span>bWAR ≤ 38.6:</span>
-                    <span class="${warOk ? 'criteria-pass' : 'criteria-fail'}">${warOk ? '✓' : `✗ (${war.toFixed(1)})`}</span>
+                    <span>bWAR â‰¤ 38.6:</span>
+                    <span class="${warOk ? 'criteria-pass' : 'criteria-fail'}">${warOk ? 'âœ“' : `âœ— (${war.toFixed(1)})`}</span>
                 </div>
                 <div class="criteria-item">
                     <span>No MVP Awards:</span>
-                    <span class="${mvpOk ? 'criteria-pass' : 'criteria-fail'}">${mvpOk ? '✓' : `✗ (${mvpCount} MVP${mvpCount > 1 ? 's' : ''})`}</span>
+                    <span class="${mvpOk ? 'criteria-pass' : 'criteria-fail'}">${mvpOk ? 'âœ“' : `âœ— (${mvpCount} MVP${mvpCount > 1 ? 's' : ''})`}</span>
                 </div>
                 <div class="criteria-item">
                     <span>No Cy Young Awards:</span>
-                    <span class="${cyOk ? 'criteria-pass' : 'criteria-fail'}">${cyOk ? '✓' : `✗ (${cyCount} Cy Young${cyCount > 1 ? 's' : ''})`}</span>
+                    <span class="${cyOk ? 'criteria-pass' : 'criteria-fail'}">${cyOk ? 'âœ“' : `âœ— (${cyCount} Cy Young${cyCount > 1 ? 's' : ''})`}</span>
                 </div>
                 <div class="criteria-item">
                     <span>Not Hall of Famer:</span>
-                    <span class="${hofOk ? 'criteria-pass' : 'criteria-fail'}">${hofOk ? '✓' : '✗ (HOF Member)'}</span>
+                    <span class="${hofOk ? 'criteria-pass' : 'criteria-fail'}">${hofOk ? 'âœ“' : 'âœ— (HOF Member)'}</span>
                 </div>
             `;
             
@@ -855,12 +917,12 @@
                 
                 criteria += `
                     <div class="criteria-item">
-                        <span>Avg ≥ .200:</span>
-                        <span class="${avgOk ? 'criteria-pass' : 'criteria-fail'}">${avgOk ? '✓' : `✗ (${avg.toFixed(3)})`}</span>
+                        <span>Avg â‰¥ .200:</span>
+                        <span class="${avgOk ? 'criteria-pass' : 'criteria-fail'}">${avgOk ? 'âœ“' : `âœ— (${avg.toFixed(3)})`}</span>
                     </div>
                     <div class="criteria-item">
-                        <span>Hits ≥ 1000:</span>
-                        <span class="${hitsOk ? 'criteria-pass' : 'criteria-fail'}">${hitsOk ? '✓' : `✗ (${hits})`}</span>
+                        <span>Hits â‰¥ 1000:</span>
+                        <span class="${hitsOk ? 'criteria-pass' : 'criteria-fail'}">${hitsOk ? 'âœ“' : `âœ— (${hits})`}</span>
                     </div>
                 `;
             }
@@ -881,23 +943,19 @@
         function clearResults() {
             playersGrid.innerHTML = `
                 <div class="loading">
-                    <h3>🔍 Start typing to search</h3>
+                    <h3>ðŸ” Start typing to search</h3>
                     <p>Try searching for Derek Jeter, Hunter Pence, R.A. Dickey, or any MLB player since 1990</p>
                 </div>
             `;
-            statsSummary.textContent = `${playersData.length.toLocaleString()} players loaded. Start typing to search!`;
+            statsSummary.textContent = `${playersData.length} players loaded. Start typing to search!`;
         }
 
         function loadSampleData() {
-            // Fallback sample data with REAL career totals and awards
+            // Fallback sample data
             const sampleData = `Name,player_type,debut_year,final_year,seasons_played,games,career_war,at_bats,hits,doubles,triples,home_runs,runs,rbis,walks,strikeouts,stolen_bases,batting_avg,obp,slg,ops,games_started,wins,losses,saves,innings_pitched,hits_allowed,earned_runs,era,whip,k_per_nine,win_pct,teams,mvp_awards,cy_young_awards,hall_of_famer,hall_of_pretty_good_eligible
 Hunter Pence,hitter,2007,2020,14,1705,32.8,6358,1777,336,52,244,942,942,434,1437,107,0.279,0.332,0.440,0.772,,,,,,,,,,,,"HOU, PHI, SF, TEX",0,0,False,True
 Derek Jeter,hitter,1995,2014,20,2747,71.3,11195,3465,544,66,260,1923,1311,712,1840,358,0.310,0.377,0.440,0.817,,,,,,,,,,,,"NYY",0,0,True,False
-Bobby Abreu,hitter,1996,2014,18,2425,36.4,8480,2470,574,79,288,1453,1363,1476,1840,400,0.291,0.395,0.475,0.870,,,,,,,,,,,,"HOU, PHI, NYY, LAA, ARI, NYM",0,0,False,True
-R.A. Dickey,pitcher,2001,2017,17,377,18.5,,,,,,,,,,,,,,469,109,85,0,2097.1,2108,939,4.03,1.346,6.6,0.562,"TEX, SEA, MIN, NYM, TOR, ATL",0,1,False,False
-Pedro Martinez,pitcher,1992,2009,18,476,86.0,,,,,,,,,,,,,,409,219,100,3,2827.1,1968,918,2.93,1.054,10.0,0.687,"LAD, MON, BOS, NYM, PHI",0,3,True,False
-Tim Hudson,pitcher,1999,2015,17,525,38.4,,,,,,,,,,,,,,476,222,133,2,3126.0,3083,1213,3.49,1.239,6.0,0.625,"OAK, ATL, SF",0,0,False,True
-Carlos Beltran,hitter,1998,2017,20,2586,70.1,8677,2725,565,39,435,1582,1587,1084,1955,312,0.279,0.350,0.486,0.835,,,,,,,,,,,,"KC, HOU, NYY, SF, STL, TEX",0,0,False,False`;
+R.A. Dickey,pitcher,2001,2017,17,377,18.5,,,,,,,,,,,,,,469,109,85,0,2097.1,2108,939,4.03,1.346,6.6,0.562,"TEX, SEA, MIN, NYM, TOR, ATL",0,1,False,False`;
 
             parseCSVData(sampleData);
         }
