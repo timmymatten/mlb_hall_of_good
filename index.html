@@ -42,7 +42,7 @@
             --border-color: rgba(255, 255, 255, 0.1);
         }
 
-        [data-theme="light"] {
+        html[data-theme="light"] {
             /* Light theme */
             --bg-gradient-start: #e8f5e8;
             --bg-gradient-end: #d4f1d4;
@@ -551,7 +551,7 @@
     </button>
 
     <div class="header">
-        <h1>&#9918; Hall of Pretty Good</h1>
+        <h1>⚾ Hall of Pretty Good</h1>
         <p>Search Any MLB Player Since 1990</p>
     </div>
 
@@ -564,9 +564,9 @@
     </div>
 
     <div class="data-info" id="dataInfo" style="display: none;">
-        <strong>&#128202; Database Loaded:</strong> <span id="playerCount">0</span> players 
-        &bull; <span id="eligibleCount">0</span> Hall of Pretty Good eligible
-        &bull; <strong>Data includes real MVP, Cy Young, and Hall of Fame information</strong>
+        <strong>📊 Database Loaded:</strong> <span id="playerCount">0</span> players 
+        • <span id="eligibleCount">0</span> Hall of Pretty Good eligible
+        • <strong>Data includes real MVP, Cy Young, and Hall of Fame information</strong>
     </div>
 
     <div class="search-container" style="display: none;" id="searchContainer">
@@ -580,11 +580,7 @@
 
     <div id="playersGrid">
         <div class="loading">
-<<<<<<< HEAD
             <h3>🗃️ Initializing Hall of Pretty Good Database</h3>
-=======
-            <h3>&#128295;&#65039; Initializing Hall of Pretty Good Database</h3>
->>>>>>> 1bccc3bc9e92b636b1e410eb577de526631a0a3f
             <p>Loading comprehensive MLB player data with real awards information...</p>
         </div>
     </div>
@@ -592,23 +588,23 @@
     <div class="footer">
         <p>Inspired by <a href="https://www.instagram.com/mlbhallofgood/" target="_blank">@mlbhallofgood</a> on Instagram</p>
         <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-            Data sourced from Baseball Reference via PyBaseball &bull; Awards data verified &bull; Career statistics accurate
+            Data sourced from Baseball Reference via PyBaseball • Awards data verified • Career statistics accurate
         </p>
     </div>
 
     <script>
-        // Theme management
-        function initializeTheme() {
+        // Initialize theme immediately (before DOM ready for faster loading)
+        (function() {
             const savedTheme = localStorage.getItem('theme') || 'dark';
-            document.body.setAttribute('data-theme', savedTheme);
-            updateThemeButton(savedTheme);
-        }
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
 
+        // Theme management functions
         function toggleTheme() {
-            const currentTheme = document.body.getAttribute('data-theme');
+            const currentTheme = document.documentElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             
-            document.body.setAttribute('data-theme', newTheme);
+            document.documentElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             updateThemeButton(newTheme);
         }
@@ -617,18 +613,24 @@
             const themeIcon = document.getElementById('themeIcon');
             const themeText = document.getElementById('themeText');
             
-            if (theme === 'dark') {
-                themeIcon.textContent = '🌙';
-                themeText.textContent = 'Light Mode';
-            } else {
-                themeIcon.textContent = '☀️';
-                themeText.textContent = 'Dark Mode';
+            if (themeIcon && themeText) {
+                if (theme === 'dark') {
+                    themeIcon.textContent = '🌙';
+                    themeText.textContent = 'Light Mode';
+                } else {
+                    themeIcon.textContent = '☀️';
+                    themeText.textContent = 'Dark Mode';
+                }
             }
         }
 
-        // Initialize theme on page load
+        // Initialize everything when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
-            initializeTheme();
+            // Update theme button with current theme
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            updateThemeButton(currentTheme);
+            
+            // Load database immediately
             loadPlayerDatabase();
         });
 
@@ -749,7 +751,7 @@
             
             playersGrid.innerHTML = `
                 <div class="loading">
-                    <h3>&#128269; Ready to Search!</h3>
+                    <h3>🔍 Ready to Search!</h3>
                     <p>Try searching for Derek Jeter, Hunter Pence, R.A. Dickey, or any MLB player since 1990</p>
                 </div>
             `;
@@ -802,7 +804,7 @@
                     .map(player => `
                         <div class="suggestion-item" onclick="selectPlayer('${player.Name}')">
                             <div class="suggestion-player-name">${player.Name}</div>
-                            <div class="suggestion-player-info">${player.player_type} &bull; ${player.debut_year}-${player.final_year}</div>
+                            <div class="suggestion-player-info">${player.player_type} • ${player.debut_year}-${player.final_year}</div>
                         </div>
                     `).join('');
                 searchSuggestions.style.display = 'block';
@@ -844,7 +846,7 @@
                 return `
                     <div class="player-card ${eligible ? 'eligible' : 'not-eligible'}">
                         <div class="eligibility-badge ${eligible ? 'eligible-badge' : 'not-eligible-badge'}">
-                            ${eligible ? '&#10003; ELIGIBLE' : '&#10007; NOT ELIGIBLE'}
+                            ${eligible ? '✓ ELIGIBLE' : '✗ NOT ELIGIBLE'}
                         </div>
                         <div class="player-name">${player.Name}</div>
                         <div class="player-info">
@@ -988,7 +990,7 @@
             const eligible = player.hall_of_pretty_good_eligible === 'True' || player.hall_of_pretty_good_eligible === true;
             
             if (eligible) {
-                return '&#9989; Meets all Hall of Pretty Good criteria';
+                return '✅ Meets all Hall of Pretty Good criteria';
             } else {
                 const issues = [];
                 const war = parseFloat(player.career_war || 0);
@@ -1008,11 +1010,7 @@
                     if (hits < 1000) issues.push(`Not enough hits (${hits} < 1000)`);
                 }
                 
-<<<<<<< HEAD
                 return `⌛ ${issues.length > 0 ? issues.join(', ') : 'Does not meet criteria'}`;
-=======
-                return `&#10060; ${issues.length > 0 ? issues.join(', ') : 'Does not meet criteria'}`;
->>>>>>> 1bccc3bc9e92b636b1e410eb577de526631a0a3f
             }
         }
 
@@ -1029,20 +1027,20 @@
             
             let criteria = `
                 <div class="criteria-item">
-                    <span>bWAR &le; 38.6:</span>
-                    <span class="${warOk ? 'criteria-pass' : 'criteria-fail'}">${warOk ? '&#10003;' : `&#10007; (${war.toFixed(1)})`}</span>
+                    <span>bWAR ≤ 38.6:</span>
+                    <span class="${warOk ? 'criteria-pass' : 'criteria-fail'}">${warOk ? '✓' : `✗ (${war.toFixed(1)})`}</span>
                 </div>
                 <div class="criteria-item">
                     <span>No MVP Awards:</span>
-                    <span class="${mvpOk ? 'criteria-pass' : 'criteria-fail'}">${mvpOk ? '&#10003;' : `&#10007; (${mvpCount} MVP${mvpCount > 1 ? 's' : ''})`}</span>
+                    <span class="${mvpOk ? 'criteria-pass' : 'criteria-fail'}">${mvpOk ? '✓' : `✗ (${mvpCount} MVP${mvpCount > 1 ? 's' : ''})`}</span>
                 </div>
                 <div class="criteria-item">
                     <span>No Cy Young Awards:</span>
-                    <span class="${cyOk ? 'criteria-pass' : 'criteria-fail'}">${cyOk ? '&#10003;' : `&#10007; (${cyCount} Cy Young${cyCount > 1 ? 's' : ''})`}</span>
+                    <span class="${cyOk ? 'criteria-pass' : 'criteria-fail'}">${cyOk ? '✓' : `✗ (${cyCount} Cy Young${cyCount > 1 ? 's' : ''})`}</span>
                 </div>
                 <div class="criteria-item">
                     <span>Not Hall of Famer:</span>
-                    <span class="${hofOk ? 'criteria-pass' : 'criteria-fail'}">${hofOk ? '&#10003;' : '&#10007; (HOF Member)'}</span>
+                    <span class="${hofOk ? 'criteria-pass' : 'criteria-fail'}">${hofOk ? '✓' : '✗ (HOF Member)'}</span>
                 </div>
             `;
             
@@ -1080,7 +1078,7 @@
         function clearResults() {
             playersGrid.innerHTML = `
                 <div class="loading">
-                    <h3>&#128269; Start typing to search</h3>
+                    <h3>🔍 Start typing to search</h3>
                     <p>Try searching for Derek Jeter, Hunter Pence, R.A. Dickey, or any MLB player since 1990</p>
                 </div>
             `;
