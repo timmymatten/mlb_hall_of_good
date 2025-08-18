@@ -583,7 +583,7 @@
     <div class="data-info" id="dataInfo" style="display: none;">
         <strong>📊 Database Loaded:</strong> <span id="playerCount">0</span> players 
         • <span id="eligibleCount">0</span> Hall of Pretty Good eligible
-        • <strong>Now includes minimum performance thresholds</strong>
+        • <strong>Updated with real career statistics</strong>
     </div>
 
     <div class="search-container" style="display: none;" id="searchContainer">
@@ -598,14 +598,14 @@
     <div id="playersGrid">
         <div class="loading">
             <h3>🗃️ Initializing Hall of Pretty Good Database</h3>
-            <p>Loading comprehensive MLB player data with real awards information...</p>
+            <p>Loading comprehensive MLB player data with real career statistics...</p>
         </div>
     </div>
 
     <div class="footer">
         <p>Inspired by <a href="https://www.instagram.com/mlbhallofgood/" target="_blank">@mlbhallofgood</a> on Instagram</p>
         <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-            Data sourced from Baseball Reference via PyBaseball • Awards data verified • Career statistics accurate
+            Data sourced from Baseball Reference • Career statistics accurate
         </p>
     </div>
 
@@ -675,9 +675,9 @@
 
         async function loadPlayerDatabase() {
             try {
-                loadingText.textContent = "Downloading MLB player database...";
+                loadingText.textContent = "Loading player career stats CSV...";
                 
-                const response = await fetch('./all_players_1990_present.csv');
+                const response = await fetch('player_career_stats.csv');
                 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -725,13 +725,15 @@
                             player[header] = values[index] || '';
                         });
                         
-                        if (player.Name && player.career_war) {
+                        // Only add players with required data
+                        if (player.full_name && player.full_name.trim()) {
                             playersData.push(player);
                         }
                     }
                 }
 
                 console.log(`Loaded ${playersData.length} players from CSV`);
+                console.log('Sample player data:', playersData[0]);
                 
             } catch (error) {
                 console.error('Error parsing CSV:', error);
@@ -761,99 +763,45 @@
             return values;
         }
 
-        // New function to check minimum thresholds
-        function checkMinimumThresholds(player) {
-            const isHitter = player.player_type === 'hitter';
-            const games = parseInt(player.games || 0);
-            const war = parseFloat(player.career_war || 0);
-            
-            if (isHitter) {
-                const plateAppearances = parseFloat(player.plate_appearances || 0);
-                const hits = parseFloat(player.hits || 0);
-                const homeRuns = parseFloat(player.home_runs || 0);
-                const rbis = parseFloat(player.rbis || 0);
-                const battingAvg = parseFloat(player.batting_avg || 0);
-                const stolenBases = parseFloat(player.stolen_bases || 0);
-                
-                return {
-                    meetsMinimums: games >= 500 && plateAppearances >= 2400 && hits >= 500 && 
-                                  homeRuns >= 10 && rbis >= 125 && battingAvg >= 0.230 && war >= 5.0,
-                    details: {
-                        games: games >= 500,
-                        plateAppearances: plateAppearances >= 2400,
-                        hits: hits >= 500,
-                        homeRuns: homeRuns >= 10,
-                        rbis: rbis >= 125,
-                        battingAvg: battingAvg >= 0.230,
-                        war: war >= 5.0,
-                        stolenBases: stolenBases >= 25 // Optional threshold
-                    }
-                };
-            } else {
-                const wins = parseFloat(player.wins || 0);
-                const losses = parseFloat(player.losses || 0);
-                const inningsPitched = parseFloat(player.innings_pitched || 0);
-                const strikeouts = parseFloat(player.strikeouts || 0);
-                const era = parseFloat(player.era || 999);
-                const saves = parseFloat(player.saves || 0);
-                
-                return {
-                    meetsMinimums: games >= 100 && wins >= 40 && losses >= 35 && 
-                                  inningsPitched >= 700 && strikeouts >= 650 && 
-                                  era <= 4.00 && war >= 10.0,
-                    details: {
-                        games: games >= 100,
-                        wins: wins >= 40,
-                        losses: losses >= 35,
-                        inningsPitched: inningsPitched >= 700,
-                        strikeouts: strikeouts >= 650,
-                        era: era <= 4.00,
-                        war: war >= 10.0,
-                        saves: saves >= 25 // Optional threshold for relievers
-                    }
-                };
-            }
-        }
-
-        // Updated eligibility check function
+        // Updated eligibility check function for the new CSV format
         function checkHallOfPrettyGoodEligibility(player) {
-            const war = parseFloat(player.career_war || 0);
-            const mvpCount = parseInt(player.mvp_awards || 0);
-            const cyCount = parseInt(player.cy_young_awards || 0);
-            const isHOF = player.hall_of_famer === 'True' || player.hall_of_famer === true;
-            const minimumCheck = checkMinimumThresholds(player);
+            // Basic stats from the CSV
+            const hits = parseInt(player.hits || 0);
+            const homeRuns = parseInt(player.homeruns || 0);
+            const rbi = parseInt(player.rbi || 0);
+            const runs = parseInt(player.runs || 0);
+            const stolenBases = parseInt(player.stolen_bases || 0);
+            const walks = parseInt(player.walks || 0);
+            const strikeouts = parseFloat(player.strikeouts || 0);
+            const gamesPlayed = parseInt(player.games_played || 0);
+            const atBats = parseInt(player.at_bats || 0);
+            const battingAvg = parseFloat(player.batting_average || 0);
+            const ops = parseFloat(player.on_base_plus_slugging || 0);
+
+            // Simplified eligibility criteria based on available data
+            // Since we don't have WAR, awards, or HOF status in this CSV, 
+            // we'll use basic performance thresholds
             
-            // Original criteria
-            const warOk = war <= 38.6;
-            const mvpOk = mvpCount === 0;
-            const cyOk = cyCount === 0;
-            const hofOk = !isHOF;
-            
-            // Additional criteria for hitters
-            let battingAvgOk = true;
-            let hitsOk = true;
-            
-            if (player.player_type === 'hitter') {
-                const avg = parseFloat(player.batting_avg || 0);
-                const hits = parseFloat(player.hits || 0);
-                battingAvgOk = avg >= 0.200;
-                hitsOk = hits >= 1000;
-            }
-            
-            const meetsOriginalCriteria = warOk && mvpOk && cyOk && hofOk && battingAvgOk && hitsOk;
-            
+            const meetsMinimums = gamesPlayed >= 500 && 
+                                 hits >= 500 && 
+                                 battingAvg >= 0.200 && 
+                                 atBats >= 1500;
+
+            const isPrettyGood = meetsMinimums && 
+                               hits < 3000 && // Not a superstar
+                               homeRuns < 500 && // Not a home run king
+                               battingAvg < 0.330 && // Not an elite hitter
+                               ops < 0.950; // Not elite offensive production
+
             return {
-                eligible: meetsOriginalCriteria && minimumCheck.meetsMinimums,
-                meetsOriginalCriteria: meetsOriginalCriteria,
-                meetsMinimumThresholds: minimumCheck.meetsMinimums,
-                minimumDetails: minimumCheck.details,
-                originalDetails: {
-                    war: warOk,
-                    mvp: mvpOk,
-                    cyYoung: cyOk,
-                    hallOfFame: hofOk,
-                    battingAvg: battingAvgOk,
-                    hits: hitsOk
+                eligible: isPrettyGood,
+                meetsMinimums: meetsMinimums,
+                details: {
+                    games: gamesPlayed >= 500,
+                    hits: hits >= 500,
+                    battingAvg: battingAvg >= 0.200,
+                    atBats: atBats >= 1500,
+                    notSuperstar: hits < 3000 && homeRuns < 500 && battingAvg < 0.330 && ops < 0.950
                 }
             };
         }
@@ -866,7 +814,7 @@
             playersGrid.innerHTML = `
                 <div class="loading">
                     <h3>🔍 Ready to Search!</h3>
-                    <p>Try searching for Derek Jeter, Hunter Pence, R.A. Dickey, or any MLB player since 1990</p>
+                    <p>Try searching for any player name from the database</p>
                 </div>
             `;
         }
@@ -917,15 +865,15 @@
 
         function showSuggestions(query) {
             const matches = playersData
-                .filter(player => player.Name.toLowerCase().includes(query.toLowerCase()))
+                .filter(player => player.full_name.toLowerCase().includes(query.toLowerCase()))
                 .slice(0, 5);
 
             if (matches.length > 0) {
                 searchSuggestions.innerHTML = matches
                     .map(player => `
-                        <div class="suggestion-item" onclick="selectPlayer('${player.Name}')">
-                            <div class="suggestion-player-name">${player.Name}</div>
-                            <div class="suggestion-player-info">${player.player_type} • ${player.debut_year}-${player.final_year}</div>
+                        <div class="suggestion-item" onclick="selectPlayer('${player.full_name}')">
+                            <div class="suggestion-player-name">${player.full_name}</div>
+                            <div class="suggestion-player-info">G: ${player.games_played} • H: ${player.hits} • AVG: ${parseFloat(player.batting_average || 0).toFixed(3)}</div>
                         </div>
                     `).join('');
                 searchSuggestions.style.display = 'block';
@@ -948,7 +896,7 @@
 
         function searchPlayers(query) {
             filteredPlayers = playersData.filter(player => 
-                player.Name.toLowerCase().includes(query.toLowerCase())
+                player.full_name.toLowerCase().includes(query.toLowerCase())
             );
 
             if (filteredPlayers.length > 0) {
@@ -962,20 +910,19 @@
         function renderPlayers(players) {
             playersGrid.innerHTML = players.map(player => {
                 const eligibility = checkHallOfPrettyGoodEligibility(player);
-                const isHitter = player.player_type === 'hitter';
                 
                 let cardClass = 'not-eligible';
                 let badgeClass = 'not-eligible-badge';
-                let badgeText = '✗ NOT ELIGIBLE';
+                let badgeText = '❌ NOT ELIGIBLE';
                 
                 if (eligibility.eligible) {
                     cardClass = 'eligible';
                     badgeClass = 'eligible-badge';
-                    badgeText = '✓ ELIGIBLE';
-                } else if (eligibility.meetsOriginalCriteria && !eligibility.meetsMinimumThresholds) {
+                    badgeText = '✅ ELIGIBLE';
+                } else if (eligibility.meetsMinimums) {
                     cardClass = 'below-minimums';
                     badgeClass = 'below-minimums-badge';
-                    badgeText = '⚠ BELOW MINIMUMS';
+                    badgeText = '⚠ TOO GOOD';
                 }
                 
                 return `
@@ -983,303 +930,127 @@
                         <div class="eligibility-badge ${badgeClass}">
                             ${badgeText}
                         </div>
-                        <div class="player-name">${player.Name}</div>
+                        <div class="player-name">${player.full_name}</div>
                         <div class="player-info">
-                            <div>Type: ${player.player_type.toUpperCase()}</div>
-                            <div>Career: ${player.debut_year}-${player.final_year}</div>
-                            <div>Seasons: ${player.seasons_played || 'N/A'}</div>
-                            <div>bWAR: ${parseFloat(player.career_war || 0).toFixed(1)}</div>
+                            <div>Games: ${parseInt(player.games_played || 0).toLocaleString()}</div>
+                            <div>At Bats: ${parseInt(player.at_bats || 0).toLocaleString()}</div>
+                            <div>AVG: ${parseFloat(player.batting_average || 0).toFixed(3)}</div>
+                            <div>OPS: ${parseFloat(player.on_base_plus_slugging || 0).toFixed(3)}</div>
                         </div>
-                        ${player.teams ? `<div class="teams-display">Teams: ${player.teams}</div>` : ''}
                         <div class="stats-grid">
-                            ${renderPlayerStats(player, isHitter)}
+                            ${renderPlayerStats(player)}
                         </div>
                         <div class="eligibility-summary">
                             ${getEligibilitySummary(player, eligibility)}
                         </div>
                         <div class="criteria-details">
-                            ${renderEligibilityCriteria(player, eligibility, isHitter)}
+                            ${renderEligibilityCriteria(player, eligibility)}
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
-        function renderPlayerStats(player, isHitter) {
-            if (isHitter) {
-                let obp = parseFloat(player.obp || 0);
-                let slg = parseFloat(player.slg || 0);
-                let ops = parseFloat(player.ops || 0);
-                
-                if (obp === 0 && player.hits && player.walks && player.plate_appearances) {
-                    const hits = parseInt(player.hits || 0);
-                    const walks = parseInt(player.walks || 0);
-                    const pa = parseInt(player.plate_appearances || 0);
-                    obp = pa > 0 ? ((hits + walks) / pa) : 0;
-                }
-                
-                if (slg === 0 && player.hits && player.at_bats) {
-                    const hits = parseInt(player.hits || 0);
-                    const doubles = parseInt(player.doubles || 0);
-                    const triples = parseInt(player.triples || 0);
-                    const hrs = parseInt(player.home_runs || 0);
-                    const ab = parseInt(player.at_bats || 0);
-                    
-                    const totalBases = hits + doubles + (triples * 2) + (hrs * 3);
-                    slg = ab > 0 ? (totalBases / ab) : 0;
-                }
-                
-                if (ops === 0) {
-                    ops = obp + slg;
-                }
-                
-                return `
-                    <div class="stat">
-                        <span class="stat-label">Games</span>
-                        <span class="stat-value">${parseInt(player.games || 0).toLocaleString()}</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">PA</span>
-                        <span class="stat-value">${parseInt(player.plate_appearances || 0).toLocaleString()}</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">AVG</span>
-                        <span class="stat-value">${parseFloat(player.batting_avg || 0).toFixed(3)}</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">Hits</span>
-                        <span class="stat-value">${parseInt(player.hits || 0).toLocaleString()}</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">HR</span>
-                        <span class="stat-value">${parseInt(player.home_runs || 0).toLocaleString()}</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">RBI</span>
-                        <span class="stat-value">${parseInt(player.rbis || 0).toLocaleString()}</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">SB</span>
-                        <span class="stat-value">${parseInt(player.stolen_bases || 0)}</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">OBP</span>
-                        <span class="stat-value">${obp.toFixed(3)}</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">SLG</span>
-                        <span class="stat-value">${slg.toFixed(3)}</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">OPS</span>
-                        <span class="stat-value">${ops.toFixed(3)}</span>
-                    </div>
-                `;
-            } else {
-                return `
-                    <div class="stat">
-                        <span class="stat-label">Games</span>
-                        <span class="stat-value">${parseInt(player.games || 0).toLocaleString()}</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">Wins</span>
-                        <span class="stat-value">${parseInt(player.wins || 0)}</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">Losses</span>
-                        <span class="stat-value">${parseInt(player.losses || 0)}</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">Saves</span>
-                        <span class="stat-value">${parseInt(player.saves || 0)}</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">ERA</span>
-                        <span class="stat-value">${parseFloat(player.era || 0).toFixed(2)}</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">IP</span>
-                        <span class="stat-value">${parseFloat(player.innings_pitched || 0).toFixed(1)}</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">SO</span>
-                        <span class="stat-value">${parseInt(player.strikeouts || 0).toLocaleString()}</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-label">WHIP</span>
-                        <span class="stat-value">${parseFloat(player.whip || 0).toFixed(3)}</span>
-                    </div>
-                `;
-            }
+        function renderPlayerStats(player) {
+            return `
+                <div class="stat">
+                    <span class="stat-label">Hits</span>
+                    <span class="stat-value">${parseInt(player.hits || 0).toLocaleString()}</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">HR</span>
+                    <span class="stat-value">${parseInt(player.homeruns || 0)}</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">RBI</span>
+                    <span class="stat-value">${parseInt(player.rbi || 0).toLocaleString()}</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Runs</span>
+                    <span class="stat-value">${parseInt(player.runs || 0).toLocaleString()}</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">SB</span>
+                    <span class="stat-value">${parseInt(player.stolen_bases || 0)}</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Walks</span>
+                    <span class="stat-value">${parseInt(player.walks || 0).toLocaleString()}</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">SO</span>
+                    <span class="stat-value">${parseInt(player.strikeouts || 0).toLocaleString()}</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">AVG</span>
+                    <span class="stat-value">${parseFloat(player.batting_average || 0).toFixed(3)}</span>
+                </div>
+            `;
         }
 
         function getEligibilitySummary(player, eligibility) {
             if (eligibility.eligible) {
-                return '✅ Meets all Hall of Pretty Good criteria including minimum thresholds';
-            } else if (eligibility.meetsOriginalCriteria && !eligibility.meetsMinimumThresholds) {
-                return '⚠️ Meets original criteria but below minimum performance thresholds';
+                return '✅ Perfect for the Hall of Pretty Good - solid career without superstar stats';
+            } else if (eligibility.meetsMinimums && !eligibility.eligible) {
+                return '⚠️ Too good for Hall of Pretty Good - elite career numbers';
             } else {
                 const issues = [];
-                const war = parseFloat(player.career_war || 0);
-                const mvpCount = parseInt(player.mvp_awards || 0);
-                const cyCount = parseInt(player.cy_young_awards || 0);
-                const isHOF = player.hall_of_famer === 'True' || player.hall_of_famer === true;
+                const games = parseInt(player.games_played || 0);
+                const hits = parseInt(player.hits || 0);
+                const avg = parseFloat(player.batting_average || 0);
+                const atBats = parseInt(player.at_bats || 0);
                 
-                if (war > 38.6) issues.push(`bWAR too high (${war.toFixed(1)} > 38.6)`);
-                if (mvpCount > 0) issues.push(`Won ${mvpCount} MVP award${mvpCount > 1 ? 's' : ''}`);
-                if (cyCount > 0) issues.push(`Won ${cyCount} Cy Young award${cyCount > 1 ? 's' : ''}`);
-                if (isHOF) issues.push('Hall of Famer');
+                if (games < 500) issues.push(`Not enough games (${games} < 500)`);
+                if (hits < 500) issues.push(`Not enough hits (${hits} < 500)`);
+                if (avg < 0.200) issues.push(`Batting average too low (${avg.toFixed(3)} < .200)`);
+                if (atBats < 1500) issues.push(`Not enough at-bats (${atBats} < 1500)`);
                 
-                if (player.player_type === 'hitter') {
-                    const avg = parseFloat(player.batting_avg || 0);
-                    const hits = parseInt(player.hits || 0);
-                    if (avg < 0.200) issues.push(`Batting average too low (${avg.toFixed(3)} < .200)`);
-                    if (hits < 1000) issues.push(`Not enough hits (${hits} < 1000)`);
-                }
-                
-                return `❌ ${issues.length > 0 ? issues.join(', ') : 'Does not meet criteria'}`;
+                return `❌ ${issues.length > 0 ? issues.join(', ') : 'Does not meet minimum criteria'}`;
             }
         }
 
-        function renderEligibilityCriteria(player, eligibility, isHitter) {
-            const war = parseFloat(player.career_war || 0);
-            const mvpCount = parseInt(player.mvp_awards || 0);
-            const cyCount = parseInt(player.cy_young_awards || 0);
-            const isHOF = player.hall_of_famer === 'True' || player.hall_of_famer === true;
+        function renderEligibilityCriteria(player, eligibility) {
+            const games = parseInt(player.games_played || 0);
+            const hits = parseInt(player.hits || 0);
+            const homeRuns = parseInt(player.homeruns || 0);
+            const avg = parseFloat(player.batting_average || 0);
+            const atBats = parseInt(player.at_bats || 0);
+            const ops = parseFloat(player.on_base_plus_slugging || 0);
             
-            const warOk = war <= 38.6;
-            const mvpOk = mvpCount === 0;
-            const cyOk = cyCount === 0;
-            const hofOk = !isHOF;
-            
-            let criteria = `
+            return `
                 <div class="criteria-item">
-                    <span>bWAR ≤ 38.6:</span>
-                    <span class="${warOk ? 'criteria-pass' : 'criteria-fail'}">${warOk ? '✓' : `✗ (${war.toFixed(1)})`}</span>
+                    <span>Games ≥ 500:</span>
+                    <span class="${eligibility.details.games ? 'criteria-pass' : 'criteria-fail'}">${eligibility.details.games ? '✓' : `✗ (${games})`}</span>
                 </div>
                 <div class="criteria-item">
-                    <span>No MVP Awards:</span>
-                    <span class="${mvpOk ? 'criteria-pass' : 'criteria-fail'}">${mvpOk ? '✓' : `✗ (${mvpCount} MVP${mvpCount > 1 ? 's' : ''})`}</span>
+                    <span>Hits ≥ 500:</span>
+                    <span class="${eligibility.details.hits ? 'criteria-pass' : 'criteria-fail'}">${eligibility.details.hits ? '✓' : `✗ (${hits})`}</span>
                 </div>
                 <div class="criteria-item">
-                    <span>No Cy Young Awards:</span>
-                    <span class="${cyOk ? 'criteria-pass' : 'criteria-fail'}">${cyOk ? '✓' : `✗ (${cyCount} Cy Young${cyCount > 1 ? 's' : ''})`}</span>
+                    <span>At Bats ≥ 1500:</span>
+                    <span class="${eligibility.details.atBats ? 'criteria-pass' : 'criteria-fail'}">${eligibility.details.atBats ? '✓' : `✗ (${atBats})`}</span>
                 </div>
                 <div class="criteria-item">
-                    <span>Not Hall of Famer:</span>
-                    <span class="${hofOk ? 'criteria-pass' : 'criteria-fail'}">${hofOk ? '✓' : '✗ (HOF Member)'}</span>
+                    <span>AVG ≥ .200:</span>
+                    <span class="${eligibility.details.battingAvg ? 'criteria-pass' : 'criteria-fail'}">${eligibility.details.battingAvg ? '✓' : `✗ (${avg.toFixed(3)})`}</span>
+                </div>
+                <div class="criteria-item">
+                    <span>Hits < 3000:</span>
+                    <span class="${hits < 3000 ? 'criteria-pass' : 'criteria-fail'}">${hits < 3000 ? '✓' : `✗ (${hits})`}</span>
+                </div>
+                <div class="criteria-item">
+                    <span>HR < 500:</span>
+                    <span class="${homeRuns < 500 ? 'criteria-pass' : 'criteria-fail'}">${homeRuns < 500 ? '✓' : `✗ (${homeRuns})`}</span>
+                </div>
+                <div class="criteria-item">
+                    <span>AVG < .330:</span>
+                    <span class="${avg < 0.330 ? 'criteria-pass' : 'criteria-fail'}">${avg < 0.330 ? '✓' : `✗ (${avg.toFixed(3)})`}</span>
+                </div>
+                <div class="criteria-item">
+                    <span>OPS < .950:</span>
+                    <span class="${ops < 0.950 ? 'criteria-pass' : 'criteria-fail'}">${ops < 0.950 ? '✓' : `✗ (${ops.toFixed(3)})`}</span>
                 </div>
             `;
-            
-            if (isHitter) {
-                const avg = parseFloat(player.batting_avg || 0);
-                const hits = parseInt(player.hits || 0);
-                const avgOk = avg >= 0.200;
-                const hitsOk = hits >= 1000;
-                
-                criteria += `
-                    <div class="criteria-item">
-                        <span>Avg ≥ .200:</span>
-                        <span class="${avgOk ? 'criteria-pass' : 'criteria-fail'}">${avgOk ? '✓' : `✗ (${avg.toFixed(3)})`}</span>
-                    </div>
-                    <div class="criteria-item">
-                        <span>Hits ≥ 1000:</span>
-                        <span class="${hitsOk ? 'criteria-pass' : 'criteria-fail'}">${hitsOk ? '✓' : `✗ (${hits})`}</span>
-                    </div>
-                `;
-                
-                // Add minimum thresholds for hitters
-                const games = parseInt(player.games || 0);
-                const pa = parseFloat(player.plate_appearances || 0);
-                const newHits = parseFloat(player.hits || 0);
-                const hr = parseFloat(player.home_runs || 0);
-                const rbi = parseFloat(player.rbis || 0);
-                const newAvg = parseFloat(player.batting_avg || 0);
-                const newWar = parseFloat(player.career_war || 0);
-                const sb = parseFloat(player.stolen_bases || 0);
-                
-                criteria += `
-                    <div class="criteria-item">
-                        <span>Games ≥ 500:</span>
-                        <span class="${eligibility.minimumDetails.games ? 'criteria-pass' : 'criteria-warning'}">${eligibility.minimumDetails.games ? '✓' : `⚠ (${games})`}</span>
-                    </div>
-                    <div class="criteria-item">
-                        <span>PA ≥ 2400:</span>
-                        <span class="${eligibility.minimumDetails.plateAppearances ? 'criteria-pass' : 'criteria-warning'}">${eligibility.minimumDetails.plateAppearances ? '✓' : `⚠ (${pa.toFixed(0)})`}</span>
-                    </div>
-                    <div class="criteria-item">
-                        <span>Hits ≥ 500:</span>
-                        <span class="${eligibility.minimumDetails.hits ? 'criteria-pass' : 'criteria-warning'}">${eligibility.minimumDetails.hits ? '✓' : `⚠ (${newHits.toFixed(0)})`}</span>
-                    </div>
-                    <div class="criteria-item">
-                        <span>HR ≥ 10:</span>
-                        <span class="${eligibility.minimumDetails.homeRuns ? 'criteria-pass' : 'criteria-warning'}">${eligibility.minimumDetails.homeRuns ? '✓' : `⚠ (${hr.toFixed(0)})`}</span>
-                    </div>
-                    <div class="criteria-item">
-                        <span>RBI ≥ 125:</span>
-                        <span class="${eligibility.minimumDetails.rbis ? 'criteria-pass' : 'criteria-warning'}">${eligibility.minimumDetails.rbis ? '✓' : `⚠ (${rbi.toFixed(0)})`}</span>
-                    </div>
-                    <div class="criteria-item">
-                        <span>Avg ≥ .230:</span>
-                        <span class="${eligibility.minimumDetails.battingAvg ? 'criteria-pass' : 'criteria-warning'}">${eligibility.minimumDetails.battingAvg ? '✓' : `⚠ (${newAvg.toFixed(3)})`}</span>
-                    </div>
-                    <div class="criteria-item">
-                        <span>WAR ≥ 5.0:</span>
-                        <span class="${eligibility.minimumDetails.war ? 'criteria-pass' : 'criteria-warning'}">${eligibility.minimumDetails.war ? '✓' : `⚠ (${newWar.toFixed(1)})`}</span>
-                    </div>
-                    <div class="criteria-item">
-                        <span>SB ≥ 25 (bonus):</span>
-                        <span class="${eligibility.minimumDetails.stolenBases ? 'criteria-pass' : 'criteria-warning'}">${eligibility.minimumDetails.stolenBases ? '✓' : `⚠ (${sb.toFixed(0)})`}</span>
-                    </div>
-                `;
-            } else {
-                // Add minimum thresholds for pitchers
-                const games = parseInt(player.games || 0);
-                const wins = parseFloat(player.wins || 0);
-                const losses = parseFloat(player.losses || 0);
-                const ip = parseFloat(player.innings_pitched || 0);
-                const so = parseFloat(player.strikeouts || 0);
-                const era = parseFloat(player.era || 999);
-                const newWar = parseFloat(player.career_war || 0);
-                const saves = parseFloat(player.saves || 0);
-                
-                criteria += `
-                    <div class="criteria-item">
-                        <span>Games ≥ 100:</span>
-                        <span class="${eligibility.minimumDetails.games ? 'criteria-pass' : 'criteria-warning'}">${eligibility.minimumDetails.games ? '✓' : `⚠ (${games})`}</span>
-                    </div>
-                    <div class="criteria-item">
-                        <span>Wins ≥ 40:</span>
-                        <span class="${eligibility.minimumDetails.wins ? 'criteria-pass' : 'criteria-warning'}">${eligibility.minimumDetails.wins ? '✓' : `⚠ (${wins.toFixed(0)})`}</span>
-                    </div>
-                    <div class="criteria-item">
-                        <span>Losses ≥ 35:</span>
-                        <span class="${eligibility.minimumDetails.losses ? 'criteria-pass' : 'criteria-warning'}">${eligibility.minimumDetails.losses ? '✓' : `⚠ (${losses.toFixed(0)})`}</span>
-                    </div>
-                    <div class="criteria-item">
-                        <span>IP ≥ 700:</span>
-                        <span class="${eligibility.minimumDetails.inningsPitched ? 'criteria-pass' : 'criteria-warning'}">${eligibility.minimumDetails.inningsPitched ? '✓' : `⚠ (${ip.toFixed(1)})`}</span>
-                    </div>
-                    <div class="criteria-item">
-                        <span>SO ≥ 650:</span>
-                        <span class="${eligibility.minimumDetails.strikeouts ? 'criteria-pass' : 'criteria-warning'}">${eligibility.minimumDetails.strikeouts ? '✓' : `⚠ (${so.toFixed(0)})`}</span>
-                    </div>
-                    <div class="criteria-item">
-                        <span>ERA ≤ 4.00:</span>
-                        <span class="${eligibility.minimumDetails.era ? 'criteria-pass' : 'criteria-warning'}">${eligibility.minimumDetails.era ? '✓' : `⚠ (${era.toFixed(2)})`}</span>
-                    </div>
-                    <div class="criteria-item">
-                        <span>WAR ≥ 10.0:</span>
-                        <span class="${eligibility.minimumDetails.war ? 'criteria-pass' : 'criteria-warning'}">${eligibility.minimumDetails.war ? '✓' : `⚠ (${newWar.toFixed(1)})`}</span>
-                    </div>
-                    <div class="criteria-item">
-                        <span>Saves ≥ 25 (bonus):</span>
-                        <span class="${eligibility.minimumDetails.saves ? 'criteria-pass' : 'criteria-warning'}">${eligibility.minimumDetails.saves ? '✓' : `⚠ (${saves.toFixed(0)})`}</span>
-                    </div>
-                `;
-            }
-            
-            return criteria;
         }
 
         function showNoResults(query) {
@@ -1296,18 +1067,18 @@
             playersGrid.innerHTML = `
                 <div class="loading">
                     <h3>🔍 Start typing to search</h3>
-                    <p>Try searching for Derek Jeter, Hunter Pence, R.A. Dickey, or any MLB player since 1990</p>
+                    <p>Search for any MLB player in the database</p>
                 </div>
             `;
             statsSummary.textContent = `${playersData.length} players loaded. Start typing to search!`;
         }
 
         function loadSampleData() {
-            // Fallback sample data
-            const sampleData = `Name,player_type,debut_year,final_year,seasons_played,games,career_war,at_bats,hits,doubles,triples,home_runs,runs,rbis,walks,strikeouts,stolen_bases,batting_avg,obp,slg,ops,games_started,wins,losses,saves,innings_pitched,hits_allowed,earned_runs,era,whip,k_per_nine,win_pct,teams,mvp_awards,cy_young_awards,hall_of_famer,hall_of_pretty_good_eligible,plate_appearances
-Hunter Pence,hitter,2007,2020,14,1705,32.8,6358,1777,336,52,244,942,942,434,1437,107,0.279,0.332,0.440,0.772,,,,,,,,,,,,"HOU, PHI, SF, TEX",0,0,False,True,6792
-Derek Jeter,hitter,1995,2014,20,2747,71.3,11195,3465,544,66,260,1923,1311,712,1840,358,0.310,0.377,0.440,0.817,,,,,,,,,,,,"NYY",0,0,True,False,12602
-R.A. Dickey,pitcher,2001,2017,17,377,18.5,,,,,,,,,,,,,,469,109,85,0,2097.1,2108,939,4.03,1.346,6.6,0.562,"TEX, SEA, MIN, NYM, TOR, ATL",0,1,False,False,0`;
+            // Fallback sample data in the new CSV format
+            const sampleData = `full_name,hits,homeruns,rbi,runs,stolen_bases,walks,strikeouts,games_played,at_bats,batting_average,on_base_plus_slugging
+Derek Jeter,3465,260,1311,1923,358,712,1840,2747,11195,0.310,0.817
+Tony Phillips,1700,160,819,1176,177,1319,1294,2161,7576,0.266,0.770
+Hunter Pence,1777,244,942,942,107,434,1437,1705,6358,0.279,0.772`;
 
             parseCSVData(sampleData);
         }
